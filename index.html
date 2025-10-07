@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩Notícias</title>
+
+<!-- AdSense Meta e Script -->
+<meta name="google-adsense-account" content="ca-pub-3403987938490863">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3403987938490863" crossorigin="anonymous"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  color: #222;
+  background: #f5f7fa;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CABEÇALHO */
+header {
+  background: #0078ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  overflow: hidden;
+}
+
+header h1 {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  cursor: pointer;
+  animation: slideFade 1.5s ease-out forwards;
+}
+
+@keyframes slideFade {
+  0% { transform: translateY(-50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* DESTAQUE */
+.destaque {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap: 20px;
+  padding: 30px 5%;
+}
+.destaque-item {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+.destaque-item:hover { transform: scale(1.02); }
+.destaque-item img { width: 100%; height: 200px; object-fit: cover; }
+.destaque-item h3 { margin: 15px; color: #0078ff; }
+.destaque-item p { margin: 0 15px 20px; color: #555; }
+
+/* MAIN E FEED PRINCIPAL */
+main { flex: 1; padding: 30px 5%; }
+#feed-principal { display: flex; flex-direction: column; gap: 20px; }
+.card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s, opacity 0.5s ease-in-out;
+  opacity: 0;
+}
+.card.visible { opacity: 1; }
+.card:hover { transform: translateY(-5px); }
+.card img { width: 100%; height: 200px; object-fit: cover; }
+.card h4 { margin: 10px; color: #0078ff; }
+.card p { margin: 0 10px 15px; font-size: 0.9rem; color: #555; }
+
+/* FOOTER CENTRALIZADO GRUDADO */
+footer {
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 20px 5%;
+  margin-top: auto;
+}
+footer p { margin: 5px 0; font-size: 0.95rem; }
+footer .links { margin-top: 5px; }
+footer .links a {
+  color: #ffcc00;
+  margin: 0 10px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+footer .links a:hover { color: #fff; text-decoration: underline; }
+
+/* OVERLAY DE FALHA */
+#fallback-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0078ff, #004b9b);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #fff;
+  z-index: 9999;
+  animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+.loader {
+  border: 6px solid rgba(255,255,255,0.2);
+  border-top: 6px solid #fff;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+#fallback-overlay p {
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 onclick="window.location.href='https://assistenciatecnica-tech.github.io/'">EDCELL-TECH 📰Notícias</h1>
+</header>
+
+<!-- AdSense: Banner horizontal opcional -->
+<div style="margin:20px auto; text-align:center;">
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-3403987938490863"
+       data-ad-slot="1234567890"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>
+       (adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+</div>
+
+<section class="destaque" id="destaque">
+  <p>Carregando conteúdos...</p>
+</section>
+
+<main>
+  <section>
+    <div id="feed-principal"></div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 EDCELL TECH - Todos os direitos reservados.</p>
+  <div class="links">
+    <a href="https://x.com" target="_blank">Twitter/X</a> |
+    <a href="https://linkedin.com" target="_blank">LinkedIn</a> |
+    <a href="https://github.com" target="_blank">GitHub</a>
+  </div>
+</footer>
+
+<!-- Overlay de fallback -->
+<div id="fallback-overlay">
+  <div class="loader"></div>
+  <p>Reconectando às fontes de notícias...</p>
+</div>
+
+<script>
+// FONTES DE RSS
+const fontes = [
+  { nome: "Olhar Digital", rss: "https://olhardigital.com.br/feed/" },
+  { nome: "Canaltech", rss: "https://feeds.feedburner.com/canaltechbr" },
+  { nome: "TechTudo", rss: "https://feeds.feedburner.com/techtudo" },
+  { nome: "TecMundo", rss: "https://feeds.feedburner.com/tecmundo" },
+  { nome: "Tecnoblog", rss: "https://feeds.feedburner.com/tecnoblog" },
+  { nome: "Gizmodo Brasil", rss: "https://gizmodo.uol.com.br/feed/" }
+];
+
+let allNoticias = [];
+let paginaAtual = 0;
+const porPagina = 3;
+const maxTentativas = 3;
+const overlay = document.getElementById('fallback-overlay');
+
+async function fetchFeed(site, tentativas = 1) {
+  try {
+    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(site.rss)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!data.items || data.items.length === 0) throw new Error("Nenhuma notícia encontrada");
+
+    return data.items.filter(item => {
+      const imagem = item.enclosure?.link || item.thumbnail || null;
+      const descricao = item.description?.replace(/<[^>]+>/g, "").trim();
+      return imagem && descricao;
+    }).map(item => ({
+      site: site.nome,
+      titulo: item.title,
+      link: item.link,
+      descricao: item.description.replace(/<[^>]+>/g, "").substring(0,150) + "...",
+      imagem: item.enclosure?.link || item.thumbnail
+    }));
+
+  } catch (err) {
+    console.warn(`Erro ao carregar ${site.nome} (tentativa ${tentativas}):`, err.message);
+    if (tentativas < maxTentativas) {
+      await new Promise(r => setTimeout(r, 1500));
+      return fetchFeed(site, tentativas + 1);
+    } else {
+      console.error(`Falha ao carregar ${site.nome} após ${maxTentativas} tentativas.`);
+      return [];
+    }
+  }
+}
+
+async function fetchNoticias() {
+  overlay.style.display = "none";
+  allNoticias = [];
+  paginaAtual = 0;
+  const destaque = document.getElementById('destaque');
+  destaque.innerHTML = "<p>Atualizando conteúdos...</p>";
+
+  for (const site of fontes) {
+    const noticias = await fetchFeed(site);
+    allNoticias.push(...noticias);
+  }
+
+  allNoticias = allNoticias.filter((v,i,a)=>a.findIndex(t=>(t.titulo===v.titulo))===i);
+
+  destaque.innerHTML = "";
+  fontes.forEach(site => {
+    const noticia = allNoticias.find(n => n.site === site.nome);
+    if(noticia){
+      const div = document.createElement('div');
+      div.className = 'destaque-item';
+      div.innerHTML = `
+        <a href="${noticia.link}" target="_blank">
+          <img src="${noticia.imagem}" alt="${site.nome}">
+          <h3>${site.nome}</h3>
+          <p>${noticia.descricao}</p>
+        </a>
+      `;
+      destaque.appendChild(div);
+    }
+  });
+
+  if(allNoticias.length === 0){
+    destaque.innerHTML = "<p>Não foi possível carregar notícias no momento. Tente novamente mais tarde.</p>";
+    overlay.style.display = "flex";
+  } else {
+    overlay.style.display = "none";
+  }
+
+  carregarMaisNoticias();
+}
+
+function carregarMaisNoticias() {
+  const feed = document.getElementById('feed-principal');
+  const inicio = paginaAtual * porPagina;
+  const fim = inicio + porPagina;
+  const noticiasParaMostrar = allNoticias.slice(inicio, fim);
+
+  noticiasParaMostrar.forEach(noticia => {
+    if(!noticia.imagem || !noticia.descricao) return;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <a href="${noticia.link}" target="_blank">
+        <img src="${noticia.imagem}" alt="${noticia.site}">
+        <h4>${noticia.titulo}</h4>
+        <p>${noticia.descricao}</p>
+      </a>
+    `;
+    feed.appendChild(card);
+    setTimeout(() => card.classList.add('visible'), 100);
+  });
+
+  paginaAtual++;
+}
+
+window.addEventListener('scroll', () => {
+  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+    carregarMaisNoticias();
+  }
+});
+
+fetchNoticias();
+setInterval(fetchNoticias, 86400000);
+</script>
+
+</body>
+</html>
