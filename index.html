@@ -102,26 +102,21 @@ footer .links a {
 }
 footer .links a:hover { color: #fff; text-decoration: underline; }
 
-/* OVERLAY DE FALHA */
-#fallback-overlay {
+/* OVERLAY DE CARREGAMENTO */
+#loading-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: linear-gradient(135deg, #0078ff, #004b9b);
-  display: none;
+  background: rgba(255,255,255,0.8);
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  color: #fff;
   z-index: 9999;
-  animation: fadeIn 0.5s ease-in-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; } to { opacity: 1; }
 }
 .loader {
-  border: 6px solid rgba(255,255,255,0.2);
-  border-top: 6px solid #fff;
+  border: 6px solid rgba(0,0,0,0.1);
+  border-top: 6px solid #0078ff;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -132,15 +127,16 @@ footer .links a:hover { color: #fff; text-decoration: underline; }
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-#fallback-overlay p {
+#loading-overlay p {
   font-size: 1.2rem;
   font-weight: 500;
+  color: #222;
   text-align: center;
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,100%{opacity:1;}
+  50%{opacity:0.6;}
 }
 </style>
 </head>
@@ -182,10 +178,10 @@ footer .links a:hover { color: #fff; text-decoration: underline; }
   </div>
 </footer>
 
-<!-- Overlay de fallback -->
-<div id="fallback-overlay">
+<!-- Overlay de carregamento -->
+<div id="loading-overlay">
   <div class="loader"></div>
-  <p>Reconectando às fontes de notícias...</p>
+  <p>Carregando notícias...</p>
 </div>
 
 <script>
@@ -203,7 +199,7 @@ let allNoticias = [];
 let paginaAtual = 0;
 const porPagina = 3;
 const maxTentativas = 3;
-const overlay = document.getElementById('fallback-overlay');
+const loadingOverlay = document.getElementById('loading-overlay');
 
 async function fetchFeed(site, tentativas = 1) {
   try {
@@ -236,47 +232,6 @@ async function fetchFeed(site, tentativas = 1) {
   }
 }
 
-async function fetchNoticias() {
-  overlay.style.display = "none";
-  allNoticias = [];
-  paginaAtual = 0;
-  const destaque = document.getElementById('destaque');
-  destaque.innerHTML = "<p>Atualizando conteúdos...</p>";
-
-  for (const site of fontes) {
-    const noticias = await fetchFeed(site);
-    allNoticias.push(...noticias);
-  }
-
-  allNoticias = allNoticias.filter((v,i,a)=>a.findIndex(t=>(t.titulo===v.titulo))===i);
-
-  destaque.innerHTML = "";
-  fontes.forEach(site => {
-    const noticia = allNoticias.find(n => n.site === site.nome);
-    if(noticia){
-      const div = document.createElement('div');
-      div.className = 'destaque-item';
-      div.innerHTML = `
-        <a href="${noticia.link}" target="_blank">
-          <img src="${noticia.imagem}" alt="${site.nome}">
-          <h3>${site.nome}</h3>
-          <p>${noticia.descricao}</p>
-        </a>
-      `;
-      destaque.appendChild(div);
-    }
-  });
-
-  if(allNoticias.length === 0){
-    destaque.innerHTML = "<p>Não foi possível carregar notícias no momento. Tente novamente mais tarde.</p>";
-    overlay.style.display = "flex";
-  } else {
-    overlay.style.display = "none";
-  }
-
-  carregarMaisNoticias();
-}
-
 function carregarMaisNoticias() {
   const feed = document.getElementById('feed-principal');
   const inicio = paginaAtual * porPagina;
@@ -300,6 +255,60 @@ function carregarMaisNoticias() {
   });
 
   paginaAtual++;
+}
+
+async function fetchNoticias() {
+  loadingOverlay.style.display = "flex";
+
+  // Verifica se já existem notícias no localStorage
+  const stored = localStorage.getItem('noticias');
+  if(stored){
+    allNoticias = JSON.parse(stored);
+    mostrarNoticiasInstantaneamente();
+  }
+
+  paginaAtual = 0;
+  const destaque = document.getElementById('destaque');
+  destaque.innerHTML = "<p>Atualizando conteúdos...</p>";
+
+  let todasNoticias = [];
+  for(const site of fontes){
+    const noticias = await fetchFeed(site);
+    todasNoticias.push(...noticias);
+  }
+
+  // Remove duplicadas
+  allNoticias = todasNoticias.filter((v,i,a)=>a.findIndex(t=>(t.titulo===v.titulo))===i);
+
+  // Salva no localStorage
+  localStorage.setItem('noticias', JSON.stringify(allNoticias));
+
+  destaque.innerHTML = "";
+  fontes.forEach(site => {
+    const noticia = allNoticias.find(n => n.site === site.nome);
+    if(noticia){
+      const div = document.createElement('div');
+      div.className = 'destaque-item';
+      div.innerHTML = `
+        <a href="${noticia.link}" target="_blank">
+          <img src="${noticia.imagem}" alt="${site.nome}">
+          <h3>${site.nome}</h3>
+          <p>${noticia.descricao}</p>
+        </a>
+      `;
+      destaque.appendChild(div);
+    }
+  });
+
+  loadingOverlay.style.display = "none";
+  carregarMaisNoticias();
+}
+
+function mostrarNoticiasInstantaneamente(){
+  const feed = document.getElementById('feed-principal');
+  feed.innerHTML = "";
+  paginaAtual = 0;
+  carregarMaisNoticias();
 }
 
 window.addEventListener('scroll', () => {
