@@ -13,6 +13,17 @@ const porPagina = 3;
 const maxTentativas = 3;
 const loadingOverlay = document.getElementById('loading-overlay');
 
+if ('Notification' in window) {
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      new Notification("📰 Bem-vindo(a) às notícias EDCELL-TECH!", {
+        body: "As últimas novidades serão atualizadas automaticamente.",
+        icon: "https://cdn-icons-png.flaticon.com/512/21/21601.png"
+      });
+    }
+  });
+}
+
 async function fetchFeed(site, tentativas = 1) {
   try {
     const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(site.rss)}`;
@@ -33,12 +44,10 @@ async function fetchFeed(site, tentativas = 1) {
     }));
 
   } catch (err) {
-    console.warn(`Erro ao carregar ${site.nome} (tentativa ${tentativas}):`, err.message);
     if (tentativas < maxTentativas) {
       await new Promise(r => setTimeout(r, 1500));
       return fetchFeed(site, tentativas + 1);
     } else {
-      console.error(`Falha ao carregar ${site.nome} após ${maxTentativas} tentativas.`);
       return [];
     }
   }
@@ -69,54 +78,59 @@ function carregarMaisNoticias() {
   paginaAtual++;
 }
 
-async function fetchNoticias() {
-  loadingOverlay.style.display = "flex";
-
-  const stored = localStorage.getItem('noticias');
-  if(stored){
-    allNoticias = JSON.parse(stored);
-    mostrarNoticiasInstantaneamente();
-  }
-
-  paginaAtual = 0;
-  const destaque = document.getElementById('destaque');
-  destaque.innerHTML = "<p>Atualizando conteúdos...</p>";
-
-  let todasNoticias = [];
-  for(const site of fontes){
-    const noticias = await fetchFeed(site);
-    todasNoticias.push(...noticias);
-  }
-
-  allNoticias = todasNoticias.filter((v,i,a)=>a.findIndex(t=>(t.titulo===v.titulo))===i);
-  localStorage.setItem('noticias', JSON.stringify(allNoticias));
-
-  destaque.innerHTML = "";
-  fontes.forEach(site => {
-    const noticia = allNoticias.find(n => n.site === site.nome);
-    if(noticia){
-      const div = document.createElement('div');
-      div.className = 'destaque-item';
-      div.innerHTML = `
-        <a href="${noticia.link}" target="_blank">
-          <img src="${noticia.imagem}" alt="${site.nome}">
-          <h3>${site.nome}</h3>
-          <p>${noticia.descricao}</p>
-        </a>
-      `;
-      destaque.appendChild(div);
-    }
-  });
-
-  loadingOverlay.style.display = "none";
-  carregarMaisNoticias();
-}
-
-function mostrarNoticiasInstantaneamente(){
+function mostrarNoticiasInstantaneamente() {
   const feed = document.getElementById('feed-principal');
   feed.innerHTML = "";
   paginaAtual = 0;
   carregarMaisNoticias();
+}
+
+async function atualizarNoticiasEmSegundoPlano() {
+  let todasNoticias = [];
+  for (const site of fontes) {
+    const noticias = await fetchFeed(site);
+    todasNoticias.push(...noticias);
+  }
+
+  const novas = todasNoticias.filter((v,i,a)=>a.findIndex(t=>(t.titulo===v.titulo))===i);
+  const antigas = JSON.parse(localStorage.getItem('noticias') || "[]");
+
+  if (JSON.stringify(novas) !== JSON.stringify(antigas)) {
+    localStorage.setItem('noticias', JSON.stringify(novas));
+    allNoticias = novas;
+    // Atualiza suavemente sem o usuário perceber
+    const feed = document.getElementById('feed-principal');
+    feed.style.opacity = "0.7";
+    setTimeout(() => {
+      feed.innerHTML = "";
+      paginaAtual = 0;
+      carregarMaisNoticias();
+      feed.style.opacity = "1";
+    }, 300);
+  }
+}
+
+async function iniciar() {
+  const jaVisitou = localStorage.getItem('jaVisitou');
+  const stored = localStorage.getItem('noticias');
+
+  if (stored) {
+    allNoticias = JSON.parse(stored);
+    mostrarNoticiasInstantaneamente();
+  }
+
+  if (!jaVisitou) {
+    loadingOverlay.style.display = "flex";
+  } else {
+    loadingOverlay.style.display = "none";
+  }
+
+  await atualizarNoticiasEmSegundoPlano();
+
+  if (!jaVisitou) {
+    localStorage.setItem('jaVisitou', 'true');
+    setTimeout(() => loadingOverlay.style.display = "none", 800);
+  }
 }
 
 window.addEventListener('scroll', () => {
@@ -125,5 +139,5 @@ window.addEventListener('scroll', () => {
   }
 });
 
-fetchNoticias();
-setInterval(fetchNoticias, 86400000);
+iniciar();
+setInterval(atualizarNoticiasEmSegundoPlano, 86400000); // atualiza 1x por dia
